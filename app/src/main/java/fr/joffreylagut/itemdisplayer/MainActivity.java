@@ -1,9 +1,14 @@
 package fr.joffreylagut.itemdisplayer;
 
+import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import fr.joffreylagut.itemdisplayer.utilities.FetchDataFromServer;
+import com.facebook.stetho.Stetho;
+
+import fr.joffreylagut.itemdisplayer.models.PhotoDbHelper;
+import fr.joffreylagut.itemdisplayer.utilities.FetchDataFromServerIntentService;
 
 /**
  * MainActivity.java
@@ -16,12 +21,24 @@ import fr.joffreylagut.itemdisplayer.utilities.FetchDataFromServer;
  */
 public class MainActivity extends AppCompatActivity {
 
+    // Variables
+    PhotoDbHelper mPhotoDbHelper;
+    SQLiteDatabase mDb;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Stetho initialization
+        Stetho.initializeWithDefaults(this);
+
+        // We are declaring a new UserDbHelper to access to the db.
+        mPhotoDbHelper = PhotoDbHelper.getInstance(this);
+        mDb = mPhotoDbHelper.getWritableDatabase();
+
         // Fetch data from server
-        FetchDataFromServer.updateInformation(this);
+        Intent fetchDataFromServer = new Intent(this, FetchDataFromServerIntentService.class);
+        startService(fetchDataFromServer);
     }
 }
