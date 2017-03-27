@@ -16,6 +16,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
+import fr.joffreylagut.itemdisplayer.LauncherActivity;
 import fr.joffreylagut.itemdisplayer.models.Photo;
 import fr.joffreylagut.itemdisplayer.models.PhotoDbHelper;
 
@@ -24,7 +25,7 @@ import fr.joffreylagut.itemdisplayer.models.PhotoDbHelper;
  * Purpose: Download a JSON from the server and insert its content in database.
  *
  * @author Joffrey LAGUT
- * @version 1.3 2017-03-27
+ * @version 1.4 2017-03-27
  */
 
 public class FetchDataFromServerIntentService extends IntentService {
@@ -34,6 +35,9 @@ public class FetchDataFromServerIntentService extends IntentService {
 
     // URL of the files to fetch
     private final static String ENDPOINT = "http://jsonplaceholder.typicode.com/photos";
+
+    // Number of Photo to load from server before showing MainActivity
+    private final static int NUMBER_OF_PHOTOS_TO_LOAD_AT_START = 25;
 
 
     /**
@@ -45,6 +49,12 @@ public class FetchDataFromServerIntentService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
+
+        // We prepare an intent to broadcast to the launcher activity
+        // The launcher activity will know that we have updated enough photos in db
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction(LauncherActivity.PhotoDataReceiver.PROCESS_RESPONSE);
+        broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
 
         // Variable to handle the JSON file
         String response = "";
@@ -67,7 +77,13 @@ public class FetchDataFromServerIntentService extends IntentService {
                 urlConnection.disconnect();
             }
         } catch (Exception e) {
+            // We can't access to the JSON on the server.
             Log.e("ERROR", e.getMessage(), e);
+            // We display the main activity.
+            broadcastIntent.putExtra("isReady", false);
+            sendBroadcast(broadcastIntent);
+            // And stop this method.
+            return;
         }
 
 
@@ -78,6 +94,10 @@ public class FetchDataFromServerIntentService extends IntentService {
         PhotoDbHelper photoDbHelper = PhotoDbHelper.getInstance(this);
         SQLiteDatabase db = photoDbHelper.getReadableDatabase();
 
+        // We declare a variable to trigger MainActivity's launch
+        int position = 0;
+
+        // Now we parse all the photos
         for (Photo photo : photos) {
             // We check if the photo is already in db.
             if (photoDbHelper.getPhotoById(db, photo.getId()) != null) {
@@ -88,6 +108,15 @@ public class FetchDataFromServerIntentService extends IntentService {
                 // We insert the photo in db.
                 Log.i(TAG, "Insert in db " + photo.getId() + " | " + photo.getTitle());
                 photoDbHelper.addNewPhoto(db, photo);
+            }
+
+            // We increment the counter
+            position++;
+            // And check if we have parsed enough photos to show the activity
+            if (position == NUMBER_OF_PHOTOS_TO_LOAD_AT_START) {
+                // We display the main activity.
+                broadcastIntent.putExtra("isReady", true);
+                sendBroadcast(broadcastIntent);
             }
         }
     }

@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">ItemDisplayer</string>
+
+    <!-- LauncherActivity -->
+    <string name="first_launch_no_network">Error: you need an internet connexion on first launch.
+        \nPlease come back when you have internet.</string>
+    <string name="app_logo_content_description">App logo</string>
 </resources>

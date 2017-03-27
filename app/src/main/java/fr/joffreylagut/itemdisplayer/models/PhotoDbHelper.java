@@ -17,7 +17,7 @@ import java.util.List;
  * Purpose: Handle all of the request to the database.
  *
  * @author Joffrey LAGUT
- * @version 1.0 2017-03-26
+ * @version 1.1 2017-03-26
  */
 
 public class PhotoDbHelper extends SQLiteOpenHelper {
@@ -35,7 +35,7 @@ public class PhotoDbHelper extends SQLiteOpenHelper {
     private String TAG = "UserDbHelper";
 
     // Constructor
-    public PhotoDbHelper(Context context) {
+    private PhotoDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -175,6 +175,7 @@ public class PhotoDbHelper extends SQLiteOpenHelper {
         // If there is no result, we return null and log a message.
         if (cursor.getCount() == 0) {
             Log.i(TAG, "getAllPhotos: There is no photos in db.");
+            cursor.close();
             return null;
         }
 
@@ -234,6 +235,7 @@ public class PhotoDbHelper extends SQLiteOpenHelper {
         // If there is no result, we return null and log a message.
         if (cursor.getCount() == 0) {
             Log.i(TAG, "getAllPhotos: There is no photos in db.");
+            cursor.close();
             return null;
         }
 
@@ -293,6 +295,7 @@ public class PhotoDbHelper extends SQLiteOpenHelper {
         // If there is no result, we return null and log a message.
         if (cursor.getCount() == 0) {
             Log.i(TAG, "getPhotoById: There is no photos with the id " + id + "in db.");
+            cursor.close();
             return null;
         }
         // We are going to the first row
