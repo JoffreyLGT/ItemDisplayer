@@ -5,4 +5,10 @@
     <string name="first_launch_no_network">Error: you need an internet connexion on first launch.
         \nPlease come back when you have internet.</string>
     <string name="app_logo_content_description">App logo</string>
+
+    <!-- MainActivity -->
+    <string name="photos_menu_title">Photos</string>
+    <string name="albums_menu_title">Albums</string>
+    <string name="title_all_photos">All photos</string>
+    <string name="title_all_albums">All albums</string>
 </resources>

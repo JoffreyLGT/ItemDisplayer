@@ -17,7 +17,7 @@ import java.util.List;
  * Purpose: Handle all of the request to the database.
  *
  * @author Joffrey LAGUT
- * @version 1.1 2017-03-26
+ * @version 1.2 2017-03-28
  */
 
 public class PhotoDbHelper extends SQLiteOpenHelper {
@@ -170,54 +170,59 @@ public class PhotoDbHelper extends SQLiteOpenHelper {
      * @return List<Photo> list of all the photos in db. Null if there is none.
      */
     public List<Photo> getAllPhotos(SQLiteDatabase db) {
+        return getAllPhotos(db, 0, 0);
+    }
 
-        Cursor cursor = selectPhotos(db, null, null, null, null, null, null, null);
-        // If there is no result, we return null and log a message.
-        if (cursor.getCount() == 0) {
-            Log.i(TAG, "getAllPhotos: There is no photos in db.");
-            cursor.close();
-            return null;
-        }
+    /**
+     * Function returning all of the Photos in Photos table.
+     *
+     * @param db            Database to look into.
+     * @param page          Number of the page to display
+     * @param photosPerPage Amount of photos that we wants to display per page.
+     * @return List<Photo> list of all the photos in db. Null if there is none.
+     */
+    public List<Photo> getAllPhotos(SQLiteDatabase db, int page, int photosPerPage) {
 
         // We create a new list of photos
         List<Photo> allPhotos = new ArrayList<>();
 
-        // We are going to the first row
-        cursor.moveToFirst();
-        // We now fetch all the rows in the cursor
-        while (!cursor.isAfterLast()) {
-            // We create a new photo object.
-            Photo currentPhoto = new Photo();
+        Cursor cursor;
 
-            // We insert all the information of the row in the current photo.
-            currentPhoto.setId(
-                    cursor.getInt(cursor.getColumnIndex(PhotoContract.PhotoEntry.COLUMN_ID)));
-            currentPhoto.setAlbumId(
-                    cursor.getInt(cursor.getColumnIndex(PhotoContract.PhotoEntry.COLUMN_ALBUM_ID)));
-            currentPhoto.setTitle(
-                    cursor.getString(cursor.getColumnIndex(PhotoContract.PhotoEntry.COLUMN_TITLE)));
-
-            // We have to create URL. We surround it with a try catch to be sure that
-            // we have valid url.
-            try {
-                URL urlPhoto = new URL(cursor.getString(cursor.getColumnIndex(
-                        PhotoContract.PhotoEntry.COLUMN_URL)));
-                currentPhoto.setUrl(urlPhoto);
-                URL urlThumbnail = new URL(cursor.getString(cursor.getColumnIndex(
-                        PhotoContract.PhotoEntry.COLUMN_THUMBNAIL_URL)));
-                currentPhoto.setThumbnailUrl(urlThumbnail);
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            }
-            // We add the new photo in the list.
-            allPhotos.add(currentPhoto);
-
-            // We move the cursor to the next line.
-            cursor.moveToNext();
+        // If page and/or photosPerPage = 0, we get all of the photos
+        if (page == 0 || photosPerPage == 0) {
+            cursor = selectPhotos(db, null, null, null, null, null, null, null);
+        } else {
+            // We have to get only a range of photos
+            int rowsToIgnore = photosPerPage * (page - 1);
+            String limit = String.valueOf(rowsToIgnore) + "," + String.valueOf(photosPerPage);
+            cursor = selectPhotos(db, null, null, null, null, null, null, limit);
         }
+        // If there is no result, we return null and log a message.
+        if (cursor.getCount() == 0) {
+            Log.i(TAG, "getAllPhotos: There is no photos in db.");
+            cursor.close();
+            return allPhotos;
+        }
+
+        // There is photos, we have to get all of them
+        allPhotos = cursorToPhotos(cursor);
+
+        // We close the cursor
         cursor.close();
+
+        // And return the photos
         return allPhotos;
+    }
+
+    private URL convertHttpToHttps(URL urlToConvert) {
+
+        try {
+            return new URL("https", urlToConvert.getHost(), urlToConvert.getPort(),
+                    urlToConvert.getFile());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -228,55 +233,28 @@ public class PhotoDbHelper extends SQLiteOpenHelper {
      */
     public List<Photo> getAllPhotosInAlbumWithId(SQLiteDatabase db, int id) {
 
+        // We create a new list of photos
+        List<Photo> allPhotos = new ArrayList<>();
+
+        // We prepare the conditions and execute the request
         String where = PhotoContract.PhotoEntry.COLUMN_ALBUM_ID + " =?";
         String whereArg[] = {String.valueOf(id)};
-
         Cursor cursor = selectPhotos(db, null, where, whereArg, null, null, null, null);
+
         // If there is no result, we return null and log a message.
         if (cursor.getCount() == 0) {
             Log.i(TAG, "getAllPhotos: There is no photos in db.");
             cursor.close();
-            return null;
+            return allPhotos;
         }
 
-        // We create a new list of photos
-        List<Photo> allPhotos = new ArrayList<>();
+        // There is photos, we have to get all of them
+        allPhotos = cursorToPhotos(cursor);
 
-        // We are going to the first row
-        cursor.moveToFirst();
-        // We now fetch all the rows in the cursor
-        while (!cursor.isAfterLast()) {
-            // We create a new photo object.
-            Photo currentPhoto = new Photo();
-
-            // We insert all the information of the row in the current photo.
-            currentPhoto.setId(
-                    cursor.getInt(cursor.getColumnIndex(PhotoContract.PhotoEntry.COLUMN_ID)));
-            currentPhoto.setAlbumId(
-                    cursor.getInt(cursor.getColumnIndex(PhotoContract.PhotoEntry.COLUMN_ALBUM_ID)));
-            currentPhoto.setTitle(
-                    cursor.getString(cursor.getColumnIndex(PhotoContract.PhotoEntry.COLUMN_TITLE)));
-
-            // We have to create URL. We surround it with a try catch to be sure that
-            // we have valid url.
-            try {
-                URL urlPhoto = new URL(cursor.getString(cursor.getColumnIndex(
-                        PhotoContract.PhotoEntry.COLUMN_URL)));
-                currentPhoto.setUrl(urlPhoto);
-                URL urlThumbnail = new URL(cursor.getString(cursor.getColumnIndex(
-                        PhotoContract.PhotoEntry.COLUMN_THUMBNAIL_URL)));
-                currentPhoto.setThumbnailUrl(urlThumbnail);
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            }
-            // We add the new photo in the list.
-            allPhotos.add(currentPhoto);
-
-            // We move the cursor to the next line.
-            cursor.moveToNext();
-        }
+        // We close the cursor
         cursor.close();
+
+        // And return the photos
         return allPhotos;
     }
 
@@ -391,4 +369,154 @@ public class PhotoDbHelper extends SQLiteOpenHelper {
 
         return db.delete(PhotoContract.PhotoEntry.TABLE_NAME, where, whereArg) > 0;
     }
+
+
+    /**
+     * Function returning all of the Albums in database.
+     *
+     * @return List<Photo> list of all the photos in db. Null if there is none.
+     */
+    public List<Album> getAllAlbums(SQLiteDatabase db) {
+
+        return getAllAlbums(db, 0, 0);
+
+    }
+
+    /**
+     * Function returning all of the Albums in database.
+     * Return all the albums if one of the parameters is equal to 0.
+     *
+     * @param db           Database to look into.
+     * @param page         Number of the page to display.
+     * @param albumPerPage Amount of photos that we wants to display per page.
+     * @return List<Photo> list of all the photos in db. Null if there is none.
+     */
+    public List<Album> getAllAlbums(SQLiteDatabase db, int page, int albumPerPage) {
+
+
+        Cursor cursor;
+
+        // We wants only the photos that are in an Album so we prepare the where condition
+        String where = PhotoContract.PhotoEntry.COLUMN_ALBUM_ID + " IS NOT NULL";
+        String select[] = {"DISTINCT " + PhotoContract.PhotoEntry.COLUMN_ALBUM_ID};
+
+        // If page and/or albumPerPage = 0, we get all of the albums
+        if (page == 0 || albumPerPage == 0) {
+            cursor = selectPhotos(db, select, where, null, null, null, null, null);
+        } else {
+            // We have to get only a range of photos
+            int rowsToIgnore = albumPerPage * (page - 1);
+            String limit = String.valueOf(rowsToIgnore) + "," + String.valueOf(albumPerPage);
+            cursor = selectPhotos(db, select, where, null, null, null, null, limit);
+        }
+
+        // If there is no result, we return null and log a message.
+        if (cursor.getCount() == 0) {
+            Log.i(TAG, "getAllAlbums: There is no album in db.");
+            cursor.close();
+            return null;
+        }
+        // We create a new list of albums
+        List<Album> allAlbums = new ArrayList<>();
+
+        // We now fetch all the rows in the cursor
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            // We create a new Album object and set his id
+            Album currentAlbum = new Album();
+            currentAlbum.setId(cursor.getInt(
+                    cursor.getColumnIndex(PhotoContract.PhotoEntry.COLUMN_ALBUM_ID)));
+
+            // Then we add the album in the list
+            allAlbums.add(currentAlbum);
+
+            // We move the cursor to the next line.
+            cursor.moveToNext();
+        }
+        cursor.close();
+
+        // Now that we have all of the albums in a list, we have to get their photos
+        for (Album currentAlbum : allAlbums) {
+            Log.i(TAG, "getAllAlbums: Loading picture of the album no " + currentAlbum.getId());
+            // NOTE: It's not possible to have an Album without photo
+            // We create a new list of photos
+            List<Photo> allPhotos = new ArrayList<>();
+
+            // We create the condition and launch the request
+            where = PhotoContract.PhotoEntry.COLUMN_ALBUM_ID + "=" + currentAlbum.getId();
+            cursor = selectPhotos(db, null, where, null, null, null, null, null);
+
+            // We convert the result into a list of Photos
+            allPhotos = cursorToPhotos(cursor);
+            // And we close the cursor
+            cursor.close();
+
+            // We set the photos in the current album
+            currentAlbum.setPhotos(allPhotos);
+        }
+        return allAlbums;
+    }
+
+    /**
+     * This method is extracting the informations inside of the cursor in parameter to create
+     * a list of Photo.class objects.
+     *
+     * @param cursor containing all the information that we want to extract
+     * @return a list of Photo.class objects.
+     */
+    private List<Photo> cursorToPhotos(Cursor cursor) {
+
+        // We declare a new list that we will send back
+        List<Photo> photos = new ArrayList<>();
+
+        // We first have to be sure that there is information in the cursor.
+        if (cursor.getCount() == 0) {
+            Log.i(TAG, "cursorToPhotos: There is no photos in the cursor.");
+            cursor.close();
+            return photos;
+        }
+
+        // We are going to the first row
+        cursor.moveToFirst();
+        // We now fetch all the rows in the cursor
+        while (!cursor.isAfterLast()) {
+            // We create a new photo object.
+            Photo currentPhoto = new Photo();
+
+            // We insert all the information of the row in the current photo.
+            currentPhoto.setId(
+                    cursor.getInt(cursor.getColumnIndex(PhotoContract.PhotoEntry.COLUMN_ID)));
+            currentPhoto.setAlbumId(
+                    cursor.getInt(cursor.getColumnIndex(PhotoContract.PhotoEntry.COLUMN_ALBUM_ID)));
+            currentPhoto.setTitle(
+                    cursor.getString(cursor.getColumnIndex(PhotoContract.PhotoEntry.COLUMN_TITLE)));
+
+            // We have to create URL. We surround it with a try catch to be sure that
+            // we have valid url.
+            try {
+                URL urlPhoto = new URL(cursor.getString(cursor.getColumnIndex(
+                        PhotoContract.PhotoEntry.COLUMN_URL)));
+                urlPhoto = convertHttpToHttps(urlPhoto);
+                currentPhoto.setUrl(urlPhoto);
+
+                URL urlThumbnail = new URL(cursor.getString(cursor.getColumnIndex(
+                        PhotoContract.PhotoEntry.COLUMN_THUMBNAIL_URL)));
+                urlThumbnail = convertHttpToHttps(urlThumbnail);
+                currentPhoto.setThumbnailUrl(urlThumbnail);
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            // We add the new photo in the list.
+            photos.add(currentPhoto);
+
+            // We move the cursor to the next line.
+            cursor.moveToNext();
+        }
+
+        // Now that we have all the photos, we send back the list
+        return photos;
+    }
+
+
 }

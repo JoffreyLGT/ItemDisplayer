@@ -16,6 +16,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
+import fr.joffreylagut.itemdisplayer.FragmentMainActivity;
 import fr.joffreylagut.itemdisplayer.LauncherActivity;
 import fr.joffreylagut.itemdisplayer.models.Photo;
 import fr.joffreylagut.itemdisplayer.models.PhotoDbHelper;
@@ -37,7 +38,8 @@ public class FetchDataFromServerIntentService extends IntentService {
     private final static String ENDPOINT = "http://jsonplaceholder.typicode.com/photos";
 
     // Number of Photo to load from server before showing MainActivity
-    private final static int NUMBER_OF_PHOTOS_TO_LOAD_AT_START = 25;
+    private final static int NUMBER_OF_PHOTOS_TO_LOAD_AT_START =
+            FragmentMainActivity.PHOTOS_PER_PAGE;
 
 
     /**
