@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -24,13 +25,13 @@ import fr.joffreylagut.itemdisplayer.models.Photo;
  * @version 1.0 2017-03-27
  */
 
-public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.AlbumViewHolder> {
+class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.AlbumViewHolder> {
 
     // List of photos that we want to show
-    List<Album> listAlbum;
+    private List<Album> listAlbum;
 
     // Constructor
-    public AlbumListAdapter(List<Album> listAlbum) {
+    AlbumListAdapter(List<Album> listAlbum) {
         this.listAlbum = listAlbum;
     }
 
@@ -61,7 +62,7 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.Albu
     }
 
     // We define here what to do with our ViewHolder
-    class AlbumViewHolder extends RecyclerView.ViewHolder {
+    class AlbumViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         @BindViews({R.id.iv_thumbnail1, R.id.iv_thumbnail2, R.id.iv_thumbnail3,
                 R.id.iv_thumbnail4, R.id.iv_thumbnail5, R.id.iv_thumbnail6,
@@ -71,6 +72,8 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.Albu
         AlbumViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
+            // We set the listener
+            itemView.setOnClickListener(this);
         }
 
         void bind(Album album) {
@@ -90,6 +93,12 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.Albu
                         .centerCrop().fit().into(currentIvThumbnail);
                 i++;
             }
+        }
+
+        @Override
+        public void onClick(View v) {
+            Toast.makeText(v.getContext(), String.valueOf(getAdapterPosition()), Toast.LENGTH_SHORT)
+                    .show();
         }
     }
 }

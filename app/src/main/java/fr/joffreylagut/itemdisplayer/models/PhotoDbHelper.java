@@ -122,7 +122,7 @@ public class PhotoDbHelper extends SQLiteOpenHelper {
      *
      * @param db Database that we are working on.
      */
-    public void dropPhotosTable(SQLiteDatabase db) {
+    private void dropPhotosTable(SQLiteDatabase db) {
         final String SQL_DELETE_USER_TABLE =
                 "DROP TABLE IF EXISTS " + PhotoContract.PhotoEntry.TABLE_NAME;
         db.execSQL(SQL_DELETE_USER_TABLE);
@@ -212,17 +212,6 @@ public class PhotoDbHelper extends SQLiteOpenHelper {
 
         // And return the photos
         return allPhotos;
-    }
-
-    private URL convertHttpToHttps(URL urlToConvert) {
-
-        try {
-            return new URL("https", urlToConvert.getHost(), urlToConvert.getPort(),
-                    urlToConvert.getFile());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
     /**
@@ -496,12 +485,10 @@ public class PhotoDbHelper extends SQLiteOpenHelper {
             try {
                 URL urlPhoto = new URL(cursor.getString(cursor.getColumnIndex(
                         PhotoContract.PhotoEntry.COLUMN_URL)));
-                urlPhoto = convertHttpToHttps(urlPhoto);
                 currentPhoto.setUrl(urlPhoto);
 
                 URL urlThumbnail = new URL(cursor.getString(cursor.getColumnIndex(
                         PhotoContract.PhotoEntry.COLUMN_THUMBNAIL_URL)));
-                urlThumbnail = convertHttpToHttps(urlThumbnail);
                 currentPhoto.setThumbnailUrl(urlThumbnail);
 
             } catch (MalformedURLException e) {
@@ -517,6 +504,4 @@ public class PhotoDbHelper extends SQLiteOpenHelper {
         // Now that we have all the photos, we send back the list
         return photos;
     }
-
-
 }

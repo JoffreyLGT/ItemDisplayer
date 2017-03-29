@@ -11,4 +11,11 @@
     <string name="albums_menu_title">Albums</string>
     <string name="title_all_photos">All photos</string>
     <string name="title_all_albums">All albums</string>
+    <string name="thumbnail_content_description">Thumbnail of the photo</string>
+
+    <!-- ImageDialog -->
+    <string name="photo_title">Image title</string>
+    <string name="photo_content_description">Photo in fullsize</string>
+    <string name="pictogram_close_content_description">Cross to close the popup</string>
+
 </resources>

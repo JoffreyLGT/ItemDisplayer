@@ -1,5 +1,6 @@
 package fr.joffreylagut.itemdisplayer;
 
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,13 +24,13 @@ import fr.joffreylagut.itemdisplayer.models.Photo;
  * @version 1.0 2017-03-27
  */
 
-public class PhotoListAdapter extends RecyclerView.Adapter<PhotoListAdapter.PhotoViewHolder> {
+class PhotoListAdapter extends RecyclerView.Adapter<PhotoListAdapter.PhotoViewHolder> {
 
     // List of photos that we want to show
-    List<Photo> listPhotos;
+    private List<Photo> listPhotos;
 
     // Constructor
-    public PhotoListAdapter(List<Photo> listPhotos) {
+    PhotoListAdapter(List<Photo> listPhotos) {
         this.listPhotos = listPhotos;
     }
 
@@ -60,7 +61,7 @@ public class PhotoListAdapter extends RecyclerView.Adapter<PhotoListAdapter.Phot
     }
 
     // We define here what to do with our ViewHolder
-    class PhotoViewHolder extends RecyclerView.ViewHolder {
+    class PhotoViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         @BindView(R.id.iv_thumbnail)
         ImageView ivThumbnail;
@@ -68,14 +69,32 @@ public class PhotoListAdapter extends RecyclerView.Adapter<PhotoListAdapter.Phot
         PhotoViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
+            // We set the listener
+            itemView.setOnClickListener(this);
         }
 
         void bind(Photo photo) {
             if (BuildConfig.DEBUG) {
                 Picasso.with(ivThumbnail.getContext()).setIndicatorsEnabled(true);
+                Picasso.with(ivThumbnail.getContext()).setLoggingEnabled(true);
             }
+
             Picasso.with(ivThumbnail.getContext()).load(
                     photo.getThumbnailUrl().toString()).centerCrop().fit().into(ivThumbnail);
+        }
+
+        @Override
+        public void onClick(View v) {
+            // When the user click on the image, we start a new ImageDialog activity
+            Intent showImageIntent = new Intent(v.getContext(), ImageDialog.class);
+            // We already have all the information here so we put only the one thta interest us
+            // in the intent
+            Photo photoClicked = listPhotos.get(getAdapterPosition());
+            showImageIntent.putExtra("title", photoClicked.getTitle());
+            showImageIntent.putExtra("url", photoClicked.getUrl().toString());
+
+            // We start the new activity
+            v.getContext().startActivity(showImageIntent);
         }
     }
 }

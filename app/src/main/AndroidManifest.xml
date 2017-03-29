@@ -4,6 +4,8 @@
 
     <!-- This app need to access to internet to load data. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- We also need to access to the storage to allow Picasso to store images.-->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -22,12 +24,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity">
-        </activity>
+        <activity android:name=".MainActivity" />
 
         <service
             android:name=".utilities.FetchDataFromServerIntentService"
             android:exported="false" />
+
+        <activity
+            android:name=".ImageDialog"
+            android:theme="@style/myDialogTheme" />
     </application>
 
 </manifest>

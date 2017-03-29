@@ -22,13 +22,19 @@ import fr.joffreylagut.itemdisplayer.models.PhotoDbHelper;
 import fr.joffreylagut.itemdisplayer.utilities.EndlessRecyclerOnScrollListener;
 
 /**
- * Created by jlagu on 28/03/2017.
+ * FragmentMainActivity.java
+ * Purpose: Manage a fragment instance on the MainActivity.
+ *
+ * @author Joffrey LAGUT
+ * @version 1.0 2017-03-28
  */
 
 public class FragmentMainActivity extends android.support.v4.app.Fragment {
 
     // Constant used to put the value into the bundle
     private static final String TYPE_RECYCLER_VIEW = "typeRecyclerView";
+    public static final int PHOTOS_PER_PAGE = 27;
+    public static final int ALBUMS_PER_PAGE = 5;
 
     // Constant that helper the user to choose which RecyclerView will be displayed in the fragment
     public static final int TYPE_RECYCLERVIEW_PHOTOS = 1;
@@ -39,6 +45,10 @@ public class FragmentMainActivity extends android.support.v4.app.Fragment {
 
     // Global variable
     private int typeRecyclerView;
+    private PhotoDbHelper mPhotoDbHelper;
+    private SQLiteDatabase mDb;
+    private List<Photo> photos;
+    private List<Album> albums;
 
     // Views
     @BindView(R.id.fragment_content)
@@ -46,18 +56,13 @@ public class FragmentMainActivity extends android.support.v4.app.Fragment {
     @BindView(R.id.fragment_recyclerview)
     RecyclerView mRecyclerView;
 
-    // TODO Move this to a correct position
-    // Variables from MainActivity
-    PhotoDbHelper mPhotoDbHelper;
-    SQLiteDatabase mDb;
-    private List<Photo> photos;
-    private List<Album> albums;
-
-    // Constants
-    public static final int PHOTOS_PER_PAGE = 27;
-    public static final int ALBUMS_PER_PAGE = 5;
-
-
+    /**
+     * Function that create a new MainActivity fragment.
+     *
+     * @param typeRecyclerView that indicate if we want to display photos or albums in the
+     *                         RecyclerView
+     * @return a MainActivity fragment.
+     */
     public static android.support.v4.app.Fragment newInstance(int typeRecyclerView) {
         // We have to be sure that the parameter is good
         if (typeRecyclerView != TYPE_RECYCLERVIEW_PHOTOS &&
