@@ -220,7 +220,8 @@ public class PhotoDbHelper extends SQLiteOpenHelper {
      * @param db Database to look into.
      * @return List<Photo> list of all the photos in the album. Null if there is none.
      */
-    public List<Photo> getAllPhotosInAlbumWithId(SQLiteDatabase db, int id) {
+    public List<Photo> getAllPhotosInAlbumWithId(SQLiteDatabase db, int id,
+                                                 int page, int photosPerPage) {
 
         // We create a new list of photos
         List<Photo> allPhotos = new ArrayList<>();
@@ -228,7 +229,18 @@ public class PhotoDbHelper extends SQLiteOpenHelper {
         // We prepare the conditions and execute the request
         String where = PhotoContract.PhotoEntry.COLUMN_ALBUM_ID + " =?";
         String whereArg[] = {String.valueOf(id)};
-        Cursor cursor = selectPhotos(db, null, where, whereArg, null, null, null, null);
+
+        Cursor cursor;
+
+        // If page and/or photosPerPage = 0, we get all of the photos
+        if (page == 0 || photosPerPage == 0) {
+            cursor = selectPhotos(db, null, where, whereArg, null, null, null, null);
+        } else {
+            // We have to get only a range of photos
+            int rowsToIgnore = photosPerPage * (page - 1);
+            String limit = String.valueOf(rowsToIgnore) + "," + String.valueOf(photosPerPage);
+            cursor = selectPhotos(db, null, where, whereArg, null, null, null, limit);
+        }
 
         // If there is no result, we return null and log a message.
         if (cursor.getCount() == 0) {

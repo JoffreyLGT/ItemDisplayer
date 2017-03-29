@@ -1,12 +1,14 @@
 package fr.joffreylagut.itemdisplayer;
 
+import android.app.ActivityOptions;
+import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -97,8 +99,25 @@ class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.AlbumViewHo
 
         @Override
         public void onClick(View v) {
-            Toast.makeText(v.getContext(), String.valueOf(getAdapterPosition()), Toast.LENGTH_SHORT)
-                    .show();
+            // When the user click on the image, we start a new ImageDialog activity
+            Intent showAlbumDetailsIntent = new Intent(v.getContext(), AlbumDetailsActivity.class);
+
+            // We already have all the information here so we put only the one thta interest us
+            // in the intent
+            Album albumClicked = listAlbum.get(getAdapterPosition());
+            showAlbumDetailsIntent.putExtra(AlbumDetailsActivity.ALBUM_ID, albumClicked.getId());
+
+            // We start the new activity
+            // We add an animation if the user is on JELLY BEAN or newer version of Android
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+                Bundle bndlAnimation = ActivityOptions.makeCustomAnimation(v.getContext(),
+                        R.anim.slide_in_left, R.anim.slide_out_left)
+                        .toBundle();
+                v.getContext().startActivity(showAlbumDetailsIntent, bndlAnimation);
+            } else {
+                v.getContext().startActivity(showAlbumDetailsIntent);
+            }
+
         }
     }
 }

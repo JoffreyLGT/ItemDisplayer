@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         // By default, we set the fragment displaying all the photos
-        setFragment(FragmentMainActivity.TYPE_RECYCLERVIEW_PHOTOS);
+        setFragment(currentTab);
 
         // We create a new listener for the menu
         bottomNavigationView.setOnNavigationItemSelectedListener(
@@ -93,13 +93,13 @@ public class MainActivity extends AppCompatActivity {
             case FragmentMainActivity.TYPE_RECYCLERVIEW_ALBUMS:
                 setTitle(R.string.title_all_albums);
                 frag = FragmentMainActivity.newInstance(
-                        FragmentMainActivity.TYPE_RECYCLERVIEW_ALBUMS);
+                        FragmentMainActivity.TYPE_RECYCLERVIEW_ALBUMS, -1);
                 ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_left);
                 break;
             case FragmentMainActivity.TYPE_RECYCLERVIEW_PHOTOS:
                 setTitle(R.string.title_all_photos);
                 frag = FragmentMainActivity.newInstance(
-                        FragmentMainActivity.TYPE_RECYCLERVIEW_PHOTOS);
+                        FragmentMainActivity.TYPE_RECYCLERVIEW_PHOTOS, -1);
                 ft.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_right);
                 break;
         }

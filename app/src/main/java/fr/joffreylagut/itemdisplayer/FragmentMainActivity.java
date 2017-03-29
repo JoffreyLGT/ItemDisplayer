@@ -33,18 +33,21 @@ public class FragmentMainActivity extends android.support.v4.app.Fragment {
 
     // Constant used to put the value into the bundle
     private static final String TYPE_RECYCLER_VIEW = "typeRecyclerView";
+    private static final String ALBUM_ID = "albumId";
     public static final int PHOTOS_PER_PAGE = 27;
     public static final int ALBUMS_PER_PAGE = 5;
 
     // Constant that helper the user to choose which RecyclerView will be displayed in the fragment
     public static final int TYPE_RECYCLERVIEW_PHOTOS = 1;
     public static final int TYPE_RECYCLERVIEW_ALBUMS = 2;
+    public static final int TYPE_RECYCLERVIEW_DETAILS_ALBUM = 3;
 
     // TAG that is displayed in the logs
     private static String TAG = "FragmentMainActivity";
 
     // Global variable
     private int typeRecyclerView;
+    private int idAlbum;
     private PhotoDbHelper mPhotoDbHelper;
     private SQLiteDatabase mDb;
     private List<Photo> photos;
@@ -61,12 +64,16 @@ public class FragmentMainActivity extends android.support.v4.app.Fragment {
      *
      * @param typeRecyclerView that indicate if we want to display photos or albums in the
      *                         RecyclerView
+     * @param albumId ID of the album to display. Only used if we want to display the details of
+     *                an album.
      * @return a MainActivity fragment.
      */
-    public static android.support.v4.app.Fragment newInstance(int typeRecyclerView) {
+    public static android.support.v4.app.Fragment newInstance(int typeRecyclerView,
+                                                              int albumId) {
         // We have to be sure that the parameter is good
         if (typeRecyclerView != TYPE_RECYCLERVIEW_PHOTOS &&
-                typeRecyclerView != TYPE_RECYCLERVIEW_ALBUMS) {
+                typeRecyclerView != TYPE_RECYCLERVIEW_ALBUMS &&
+                typeRecyclerView != TYPE_RECYCLERVIEW_DETAILS_ALBUM) {
             // It's not the case. We log an error and return null
             Log.e(TAG, "newInstance: The specified type of RecyclerView isn't recognize.");
             return null;
@@ -76,6 +83,7 @@ public class FragmentMainActivity extends android.support.v4.app.Fragment {
         // And put the value if TypeRecyclerView into a Bundle
         Bundle args = new Bundle();
         args.putInt(TYPE_RECYCLER_VIEW, typeRecyclerView);
+        args.putInt(ALBUM_ID, albumId);
         frag.setArguments(args);
         return frag;
     }
@@ -96,8 +104,10 @@ public class FragmentMainActivity extends android.support.v4.app.Fragment {
         if (savedInstanceState == null) {
             Bundle args = getArguments();
             typeRecyclerView = args.getInt(TYPE_RECYCLER_VIEW);
+            idAlbum = args.getInt(ALBUM_ID);
         } else {
             typeRecyclerView = savedInstanceState.getInt(TYPE_RECYCLER_VIEW);
+            idAlbum = savedInstanceState.getInt(ALBUM_ID);
         }
 
         // We initialize the views
@@ -127,7 +137,7 @@ public class FragmentMainActivity extends android.support.v4.app.Fragment {
                     retrievePhotos(current_page);
                 }
             });
-        } else {
+        } else if (typeRecyclerView == TYPE_RECYCLERVIEW_ALBUMS) {
 
             // We initialize the list
             albums = new ArrayList<>();
@@ -147,6 +157,25 @@ public class FragmentMainActivity extends android.support.v4.app.Fragment {
                             retrieveAlbums(current_page);
                         }
                     });
+        } else {
+            // We initialize the list
+            photos = new ArrayList<>();
+            // We retrieve the photos
+            retrievePhotosFromAlbum(1);
+
+            // And set the RecyclerView
+            GridLayoutManager gridLayoutManager = new GridLayoutManager(view.getContext(), 3);
+            mRecyclerView.setLayoutManager(gridLayoutManager);
+            mRecyclerView.setAdapter(new PhotoListAdapter(photos));
+
+            // Retain an instance so that you can call `resetState()` for fresh searches
+            mRecyclerView.addOnScrollListener(new EndlessRecyclerOnScrollListener(
+                    gridLayoutManager, 12) {
+                @Override
+                public void onLoadMore(int current_page) {
+                    retrievePhotosFromAlbum(current_page);
+                }
+            });
         }
 
     }
@@ -173,5 +202,13 @@ public class FragmentMainActivity extends android.support.v4.app.Fragment {
      */
     private void retrieveAlbums(int pageNumber) {
         albums.addAll(mPhotoDbHelper.getAllAlbums(mDb, pageNumber, ALBUMS_PER_PAGE));
+    }
+
+    /**
+     * This method is retrieving photos in the displayed album depending on the page number.
+     */
+    private void retrievePhotosFromAlbum(int pageNumber) {
+        photos.addAll(mPhotoDbHelper.getAllPhotosInAlbumWithId(mDb, idAlbum,
+                pageNumber, PHOTOS_PER_PAGE));
     }
 }
