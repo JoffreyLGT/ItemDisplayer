@@ -18,12 +18,14 @@ public class AlbumDetailsActivity extends AppCompatActivity {
     // Constant used to define the name of the attribute inside of the opening intent
     public static final String ALBUM_ID = "albumId";
 
+    private int albumId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_album_details);
 
-        int albumId;
+
 
         // We retrieve AlbumID from bundle or savedInstanceState
         if (savedInstanceState == null) {
@@ -63,5 +65,11 @@ public class AlbumDetailsActivity extends AppCompatActivity {
         // To display the animation and finish the activity
         this.onBackPressed();
         return true;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(ALBUM_ID, albumId);
     }
 }

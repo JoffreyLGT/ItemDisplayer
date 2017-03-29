@@ -121,6 +121,7 @@ public class FetchDataFromServerIntentService extends IntentService {
                 sendBroadcast(broadcastIntent);
             }
         }
+        this.stopSelf();
     }
 
     /**

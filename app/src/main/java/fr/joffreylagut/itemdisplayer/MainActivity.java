@@ -24,27 +24,35 @@ public class MainActivity extends AppCompatActivity {
     // Constants used to know which fragment is currently displayed
     private static final int FRAGMENT_PHOTO = 1;
     private static final int FRAGMENT_ALBUM = 2;
+    private static final String CURRENT_FRAGMENT = "currentFragment";
 
     // Binds
     @BindView(R.id.bottom_navigation)
     BottomNavigationView bottomNavigationView;
 
     // By default, we display the fragment containing all the photos
-    private int currentTab = FRAGMENT_PHOTO;
+    private int currentTab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // By default, we are on photos fragment
-        setTitle(R.string.title_all_photos);
-
         // We bind the activity views
         ButterKnife.bind(this);
 
-        // By default, we set the fragment displaying all the photos
-        setFragment(currentTab);
+        if (savedInstanceState == null) {
+            // By default, we set the fragment displaying all the photos
+            currentTab = FRAGMENT_PHOTO;
+            setFragment(currentTab);
+        } else {
+            currentTab = savedInstanceState.getInt(CURRENT_FRAGMENT);
+            if (currentTab == FRAGMENT_PHOTO) {
+                setTitle(getResources().getString(R.string.title_all_photos));
+            } else {
+                setTitle(getResources().getString(R.string.title_all_albums));
+            }
+        }
 
         // We create a new listener for the menu
         bottomNavigationView.setOnNavigationItemSelectedListener(
@@ -109,5 +117,18 @@ public class MainActivity extends AppCompatActivity {
             ft.replace(R.id.container, frag, frag.getTag());
             ft.commit();
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // When we have the rotation, we have to save the current fragment displayed
+        outState.putInt(CURRENT_FRAGMENT, currentTab);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        //currentTab = savedInstanceState.getInt(CURRENT_FRAGMENT);
     }
 }
