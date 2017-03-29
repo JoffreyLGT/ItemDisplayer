@@ -131,4 +131,10 @@ public class MainActivity extends AppCompatActivity {
         super.onRestoreInstanceState(savedInstanceState);
         //currentTab = savedInstanceState.getInt(CURRENT_FRAGMENT);
     }
+
+    @Override
+    public void onBackPressed() {
+        // We put the application in background when the user press back
+        moveTaskToBack(true);
+    }
 }
